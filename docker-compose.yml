@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  web:
+    build: ./app
+    command: gunicorn travel_log.wsgi:application --bind 0.0.0.0:8000 --reload
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+      - 5678:5678
+    env_file:
+      - ./.env
+    depends_on:
+      - database
+    user: 1000:1000
+  database:
+    image: postgres:12.3
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${SQL_USER}
+      - POSTGRES_PASSWORD=${SQL_PASSWORD}
+      - POSTGRES_DB=${SQL_DATABASE}
+  nginx:
+    build: ./nginx
+    ports:
+      - 1337:443
+    depends_on:
+      - web
+    volumes:
+      - ./app/static/:/home/app/web/static/
+
+volumes:
+  postgres_data:
+  
